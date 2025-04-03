@@ -12,7 +12,6 @@ Extract TOTP/HOTP secrets from Google Authenticator export QR codes with ease.
 ## ✨ Features
 
 - **🔒 Secure Processing**: Handle your 2FA secrets locally without external services
-- **💪 Strongly Typed**: Written in Go with proper error handling
 - **🖼️ QR Image Processing**: Extract directly from screenshots containing QR codes
 - **📤 Flexible Output**:
   - 📄 Export to JSON for backup or custom processing
@@ -21,7 +20,6 @@ Extract TOTP/HOTP secrets from Google Authenticator export QR codes with ease.
   - 📟 Display QR codes as ASCII art in the terminal
   - 🔑 View full secrets securely when needed
 - **🔄 Easy Migration**: Move your accounts to any authenticator app (Authy, Bitwarden, etc.)
-- **🐳 Containerized**: Docker support for consistent execution
 
 ## 📦 Installation
 
