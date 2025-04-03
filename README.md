@@ -32,7 +32,7 @@ Download the latest release from [GitHub Releases](https://github.com/Zaphkiel-I
 ### 🛠️ From Source
 
 Requirements:
-- Go 1.16 or higher
+- Go 1.20 or higher
 
 ```bash
 # Clone the repository

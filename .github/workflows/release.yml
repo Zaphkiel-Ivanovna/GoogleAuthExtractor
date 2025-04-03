@@ -22,7 +22,7 @@ jobs:
       - name: 🔧 Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.20'
+          go-version: '1.24'
           check-latest: true
 
       - name: 🧪 Run tests
@@ -32,16 +32,16 @@ jobs:
         run: |
           # Create directories for builds
           mkdir -p build/release
-          
+
           # Build for Linux (amd64)
           GOOS=linux GOARCH=amd64 go build -o build/release/gauth-extractor-linux-amd64 ./cmd/extractor
-          
+
           # Build for macOS (amd64)
           GOOS=darwin GOARCH=amd64 go build -o build/release/gauth-extractor-darwin-amd64 ./cmd/extractor
-          
+
           # Build for macOS (arm64)
           GOOS=darwin GOARCH=arm64 go build -o build/release/gauth-extractor-darwin-arm64 ./cmd/extractor
-          
+
           # Build for Windows (amd64)
           GOOS=windows GOARCH=amd64 go build -o build/release/gauth-extractor-windows-amd64.exe ./cmd/extractor
 
@@ -63,11 +63,11 @@ jobs:
         run: |
           # Create lowercase repository name (required for ghcr.io)
           REPO_NAME_LOWERCASE="$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')"
-          
+
           # Tag with the version
           docker tag google-auth-extractor:latest ghcr.io/${REPO_NAME_LOWERCASE}:${{ steps.version.outputs.VERSION }}
           docker tag google-auth-extractor:latest ghcr.io/${REPO_NAME_LOWERCASE}:latest
-          
+
           # Push to GitHub Container Registry
           docker push ghcr.io/${REPO_NAME_LOWERCASE}:${{ steps.version.outputs.VERSION }}
           docker push ghcr.io/${REPO_NAME_LOWERCASE}:latest
