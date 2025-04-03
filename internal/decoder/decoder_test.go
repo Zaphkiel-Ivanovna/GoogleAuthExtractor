@@ -1,4 +1,3 @@
-// File: internal/decoder/decoder_test.go
 package decoder
 
 import (
@@ -48,7 +47,6 @@ func TestDecodeExportURI(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			accounts, err := DecodeExportURI(tt.uri)
 
-			// Check error expectation
 			if tt.expectError && err == nil {
 				t.Errorf("Expected error but got nil")
 			}
@@ -56,19 +54,16 @@ func TestDecodeExportURI(t *testing.T) {
 				t.Errorf("Did not expect error but got: %v", err)
 			}
 
-			// If error was expected, no need to check further
 			if tt.expectError {
 				return
 			}
 
-			// Check account count
 			if len(accounts) != tt.expectedCount {
 				t.Errorf("Expected %d accounts, got %d", tt.expectedCount, len(accounts))
 			}
 
-			// For the first test case, check specific values
 			if tt.name == "Valid single QR code" && len(accounts) >= 3 {
-				// Check first account
+
 				if accounts[0].Name != "Test account 1" {
 					t.Errorf("Expected name 'Test account 1', got '%s'", accounts[0].Name)
 				}
@@ -76,7 +71,6 @@ func TestDecodeExportURI(t *testing.T) {
 					t.Errorf("Expected type 'TOTP', got '%s'", accounts[0].Type)
 				}
 
-				// Check HOTP account
 				if accounts[2].Name != "Counter key 1" {
 					t.Errorf("Expected name 'Counter key 1', got '%s'", accounts[2].Name)
 				}
@@ -88,7 +82,6 @@ func TestDecodeExportURI(t *testing.T) {
 				}
 			}
 
-			// For the SHA512 test, check algorithm and digits
 			if tt.name == "Valid QR code with SHA512 and 8 digits" && len(accounts) >= 1 {
 				if accounts[0].Algorithm != "SHA512" {
 					t.Errorf("Expected algorithm 'SHA512', got '%s'", accounts[0].Algorithm)
@@ -106,10 +99,10 @@ func TestDecodeExportURI(t *testing.T) {
 
 func TestInvalidURIs(t *testing.T) {
 	invalidURIs := []string{
-		"",                                  // Empty string
-		"not-a-uri",                         // Not a URI
-		"otpauth-migration://offline?data=", // Empty data parameter
-		"otpauth-migration://offline?otherParam=123", // Missing data parameter
+		"",
+		"not-a-uri",
+		"otpauth-migration://offline?data=",
+		"otpauth-migration://offline?otherParam=123",
 	}
 
 	for _, uri := range invalidURIs {

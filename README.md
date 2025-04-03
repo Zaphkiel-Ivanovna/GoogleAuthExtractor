@@ -10,6 +10,7 @@ A Go tool to extract TOTP/HOTP secrets from Google Authenticator export QR codes
 - **Secure**: Process your 2FA secrets locally without any external services
 - **Flexible Output**: Save as JSON or regenerate individual QR codes for each account
 - **Easy Migration**: Move your accounts to other authenticator apps like Authy, Bitwarden, etc.
+- **Direct QR Image Input**: Extract accounts directly from screenshots or images containing QR codes
 
 ## Installation
 
@@ -52,6 +53,9 @@ gauth-extractor -u "otpauth-migration://offline?data=..." -o json -f accounts.js
 
 # Generate QR codes
 gauth-extractor -u "otpauth-migration://offline?data=..." -o qrcode -d ./qrcodes
+
+# Extract from a screenshot or image file
+gauth-extractor -p "/path/to/qrcode-screenshot.png" -o json
 ```
 
 ### Command Line Options
@@ -65,6 +69,7 @@ Flags:
   -f, --file string        Output file for JSON (default "accounts.json")
   -h, --help               help for gauth-extractor
   -i, --interactive        Interactive mode (prompt for URI)
+  -p, --image string       Path to image containing Google Authenticator QR code
   -o, --output string      Output type (json or qrcode) (default "json")
   -u, --uri string         Google Authenticator export URI
 ```
@@ -75,11 +80,16 @@ Flags:
 2. Tap the three dots menu (⋮) and select "Transfer accounts"
 3. Choose "Export accounts"
 4. Select the accounts you want to export
-5. Scan the QR code using a QR code scanner app to get the URI
-   - You can use apps like [ZXing Barcode Scanner](https://play.google.com/store/apps/details?id=com.google.zxing.client.android) for Android
-   - You cannot take a screenshot of Google Authenticator, so use another camera/device
-6. The scanned result should look like `otpauth-migration://offline?data=...`
-7. Provide this URI to the tool
+5. Choose one of the following methods:
+   - **Method 1: Using a QR scanner app**
+     - Scan the QR code using a QR code scanner app to get the URI
+     - You can use apps like [ZXing Barcode Scanner](https://play.google.com/store/apps/details?id=com.google.zxing.client.android) for Android
+     - The scanned result should look like `otpauth-migration://offline?data=...`
+     - Provide this URI to the tool using the `-u` flag or interactive mode
+   - **Method 2: Using a screenshot**
+     - Take a screenshot of the QR code using another device
+     - Save the image file
+     - Provide the image path to the tool using the `-p` flag
 
 ## Security Considerations
 
@@ -87,6 +97,7 @@ Flags:
 - **Avoid** sharing the URI through insecure channels
 - **Delete** any screenshots or images containing the QR codes after migration
 - **Consider** resetting your 2FA on critical accounts after migration
+- **Secure** any screenshots you take of QR codes - they contain the same sensitive information as the URI text
 
 ## License
 
