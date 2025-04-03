@@ -9,6 +9,35 @@ Extract TOTP/HOTP secrets from Google Authenticator export QR codes with ease.
 
 > **Note:** This project is not affiliated with Google.
 
+## 📚 Table of Contents
+
+- [✨ Features](#-features)
+- [📦 Installation](#-installation)
+  - [📥 Prebuilt Binaries](#-prebuilt-binaries)
+  - [🛠️ From Source](#️-from-source)
+  - [🐳 Using Docker](#-using-docker)
+- [🧰 Usage](#-usage)
+  - [📺 View in Terminal](#-view-in-terminal)
+  - [📄 Export to JSON](#-export-to-json)
+  - [🔄 Generate QR Codes](#-generate-qr-codes)
+  - [📋 Command Line Reference](#-command-line-reference)
+  - [Legacy Mode](#legacy-mode)
+- [📱 How to Export from Google Authenticator](#-how-to-export-from-google-authenticator)
+- [🔑 Understanding Secret Formats](#-understanding-secret-formats)
+- [🔒 Security Considerations](#-security-considerations)
+- [📋 Data Format](#-data-format)
+- [🔄 Migration Guide](#-migration-guide)
+  - [To Authy](#to-authy)
+  - [To Bitwarden](#to-bitwarden)
+  - [To 1Password](#to-1password)
+  - [To KeePass (with KeePassOTP plugin)](#to-keepass-with-keepassotp-plugin)
+- [🧪 Development](#-development)
+  - [🔄 CI/CD Workflows](#️-cicd-workflows)
+  - [Protocol Buffer](#protocol-buffer)
+- [📄 License](#-license)
+- [👏 Acknowledgments](#-acknowledgments)
+
+
 ## ✨ Features
 
 - **🔒 Secure Processing**: Handle your 2FA secrets locally without external services
