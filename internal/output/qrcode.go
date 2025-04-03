@@ -83,35 +83,34 @@ func sanitizeFilename(name string) string {
 	return re.ReplaceAllString(name, "_")
 }
 
-// DisplayQRCodesInTerminal generates and displays QR codes directly in the terminal
 func DisplayQRCodesInTerminal(accounts []decoder.Account) error {
 	for i, account := range accounts {
 		uri := generateOtpAuthURI(account)
-		
+
 		qr, err := qrcode.New(uri, qrcode.Medium)
 		if err != nil {
 			return fmt.Errorf("failed to generate QR code for account '%s': %w", account.Name, err)
 		}
-		
+
 		asciiQR := qr.ToString(false)
-		
+
 		displayName := account.Name
 		if account.Issuer != "" {
 			displayName = fmt.Sprintf("%s (%s)", account.Issuer, account.Name)
 		}
-		
+
 		if i > 0 {
 			fmt.Println("\n" + strings.Repeat("-", 80) + "\n")
 		}
-		
+
 		color.Set(color.FgCyan, color.Bold)
 		fmt.Printf("QR Code for: %s\n\n", displayName)
 		color.Unset()
-		
+
 		fmt.Println(asciiQR)
 		fmt.Printf("\nOTP Type: %s\n", account.Type)
 		fmt.Printf("URI: %s\n", uri)
 	}
-	
+
 	return nil
 }

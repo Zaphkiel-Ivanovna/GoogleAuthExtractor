@@ -14,18 +14,16 @@ import (
 )
 
 var (
-	// Input related flags
-	qrImagePath       string
-	uri               string
-	interactiveInput  bool
+	qrImagePath      string
+	uri              string
+	interactiveInput bool
 
-	// Output related flags
-	jsonFile         string
-	qrCodesDir       string
-	displayPretty    bool
-	displayQR        bool
-	saveToFiles      bool
-	showFullSecret   bool
+	jsonFile       string
+	qrCodesDir     string
+	displayPretty  bool
+	displayQR      bool
+	saveToFiles    bool
+	showFullSecret bool
 )
 
 func main() {
@@ -48,8 +46,6 @@ To use:
    c) Run in interactive mode and follow the prompts`,
 	}
 
-
-	// Setup output commands
 	viewCmd := &cobra.Command{
 		Use:   "view",
 		Short: "View the extracted accounts in the terminal",
@@ -64,14 +60,14 @@ You can customize the display using the --pretty and --qr flags.`,
 			}
 
 			output.PrettyPrintAccounts(accounts, displayPretty, showFullSecret)
-			
+
 			if displayQR {
 				err = output.DisplayQRCodesInTerminal(accounts)
 				if err != nil {
 					return fmt.Errorf("failed to display QR codes in terminal: %w", err)
 				}
 			}
-			
+
 			return nil
 		},
 	}
@@ -96,7 +92,7 @@ which can be used for backup or for importing into other applications.`,
 				}
 				return nil
 			}
-			
+
 			output.PrintJSON(accounts)
 			return nil
 		},
@@ -131,28 +127,22 @@ These QR codes can be scanned by other authenticator apps.`,
 		},
 	}
 
-	// Global flags for input methods
 	rootCmd.PersistentFlags().StringVarP(&uri, "uri", "u", "", "Google Authenticator export URI (otpauth-migration://...)")
 	rootCmd.PersistentFlags().StringVarP(&qrImagePath, "qrimage", "q", "", "Path to image containing Google Authenticator QR code")
 	rootCmd.PersistentFlags().BoolVarP(&interactiveInput, "interactive", "i", false, "Interactive mode (prompt for input)")
-	
-	// Flags for view command
+
 	viewCmd.Flags().BoolVarP(&displayPretty, "pretty", "p", true, "Enable pretty formatted output (colorful and detailed)")
 	viewCmd.Flags().BoolVarP(&displayQR, "show-qr", "r", false, "Display QR codes in the terminal")
 	viewCmd.Flags().BoolVarP(&showFullSecret, "show-secrets", "s", false, "Show full secrets (USE WITH CAUTION)")
 
-	// Flags for json command
 	jsonCmd.Flags().StringVarP(&jsonFile, "file", "f", "accounts.json", "Output file path for JSON")
 	jsonCmd.Flags().BoolVarP(&saveToFiles, "save", "s", true, "Save to file (if false, prints to terminal)")
 
-	// Flags for qr command
 	qrCmd.Flags().StringVarP(&qrCodesDir, "dir", "d", "qrcodes", "Directory for saving QR code images")
 	qrCmd.Flags().BoolVarP(&saveToFiles, "save", "s", true, "Save to files (if false, displays in terminal)")
 
-	// Add commands to root
 	rootCmd.AddCommand(viewCmd, jsonCmd, qrCmd)
 
-	// Handle legacy behavior - when no subcommand is specified
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
 		if cmd.CalledAs() == "gauth-extractor" {
 			fmt.Println("Running in legacy mode...")
@@ -170,7 +160,6 @@ These QR codes can be scanned by other authenticator apps.`,
 func getAccounts(args []string) ([]decoder.Account, error) {
 	extractedURI := ""
 
-	// If QR image is provided
 	if qrImagePath != "" {
 		var err error
 		extractedURI, err = input.ExtractQRCodeFromImage(qrImagePath)
@@ -179,10 +168,10 @@ func getAccounts(args []string) ([]decoder.Account, error) {
 		}
 		color.Green("Successfully extracted QR code from image")
 	} else if uri != "" {
-		// If URI is directly provided
+
 		extractedURI = uri
 	} else {
-		// If no input method or interactive mode is chosen
+
 		if !interactiveInput && len(args) == 0 {
 			interactiveInput = true
 		} else if len(args) > 0 {
@@ -207,14 +196,12 @@ func getAccounts(args []string) ([]decoder.Account, error) {
 	return accounts, nil
 }
 
-// handleLegacyCommand provides backward compatibility
 func handleLegacyCommand(args []string) error {
 	accounts, err := getAccounts(args)
 	if err != nil {
 		return err
 	}
 
-	// Legacy behavior uses interactive prompts
 	fmt.Println("\nHow would you like to output the accounts?")
 	fmt.Println("1. Save to JSON file")
 	fmt.Println("2. Print JSON to terminal")
@@ -251,15 +238,15 @@ func handleLegacyCommand(args []string) error {
 		fmt.Print("Use pretty formatting? [Y/n]: ")
 		scanner.Scan()
 		pretty := !strings.HasPrefix(strings.ToLower(scanner.Text()), "n")
-		
+
 		fmt.Print("Show QR codes in terminal? [y/N]: ")
 		scanner.Scan()
 		showQR := strings.HasPrefix(strings.ToLower(scanner.Text()), "y")
-		
+
 		fmt.Print("Show full secrets? (CAUTION: Secrets will be visible) [y/N]: ")
 		scanner.Scan()
 		showSecrets := strings.HasPrefix(strings.ToLower(scanner.Text()), "y")
-		
+
 		output.PrettyPrintAccounts(accounts, pretty, showSecrets)
 		if showQR {
 			err = output.DisplayQRCodesInTerminal(accounts)
