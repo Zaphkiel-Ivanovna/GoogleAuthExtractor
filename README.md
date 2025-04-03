@@ -1,5 +1,10 @@
 # 🔐 Google Authenticator Secret Extractor
 
+[![CI](https://github.com/zaphkiel-ivanovna/googleauthextractor/actions/workflows/ci.yml/badge.svg)](https://github.com/zaphkiel-ivanovna/googleauthextractor/actions/workflows/ci.yml)
+[![Lint](https://github.com/zaphkiel-ivanovna/googleauthextractor/actions/workflows/lint.yml/badge.svg)](https://github.com/zaphkiel-ivanovna/googleauthextractor/actions/workflows/lint.yml)
+[![Docker Package](https://img.shields.io/badge/Container-ghcr.io-blue)](https://github.com/zaphkiel-ivanovna/googleauthextractor/pkgs/container/googleauthextractor)
+[![GitHub Release](https://img.shields.io/github/v/release/zaphkiel-ivanovna/googleauthextractor)](https://github.com/zaphkiel-ivanovna/googleauthextractor/releases)
+
 Extract TOTP/HOTP secrets from Google Authenticator export QR codes with ease.
 
 > **Note:** This project is not affiliated with Google.
@@ -47,10 +52,14 @@ go install ./cmd/extractor
 ### 🐳 Using Docker
 
 ```bash
-# Build the Docker image
-docker build -t gauth-extractor .
+# Pull from GitHub Container Registry
+docker pull ghcr.io/zaphkiel-ivanovna/googleauthextractor:latest
 
 # Run in interactive mode
+docker run -it --rm -v "$(pwd):/home/appuser/data" ghcr.io/zaphkiel-ivanovna/googleauthextractor:latest
+
+# Or build locally
+docker build -t gauth-extractor .
 docker run -it --rm -v "$(pwd):/home/appuser/data" gauth-extractor
 ```
 
@@ -279,6 +288,32 @@ The tool extracts the following data for each account:
    - Set other parameters as needed (6 digits, 30 seconds period)
 
 ## 🧪 Development
+
+### 🔄 CI/CD Workflows
+
+This project uses GitHub Actions for continuous integration and deployment:
+
+- **🧪 CI**: Runs tests on PRs and pushes to the main branch
+- **🧹 Lint**: Performs code linting with golangci-lint
+- **🚀 Release Builder**: Manually triggered workflow to create releases
+
+#### Creating a Release
+
+To create a new release:
+
+1. Go to the "Actions" tab in the GitHub repository
+2. Select the "🚀 Release Builder" workflow
+3. Click on "Run workflow"
+4. Enter:
+   - Version tag (e.g., `v1.0.0`)
+   - Select whether it's a prerelease
+5. Click "Run workflow"
+
+This will:
+- Run the test suite
+- Build binaries for Linux, macOS (Intel and Apple Silicon), and Windows
+- Create a Docker image and push it to GitHub Container Registry (ghcr.io)
+- Create a GitHub release with the binaries attached
 
 ### Protocol Buffer
 The tool uses Protocol Buffers to decode Google Authenticator's data format:

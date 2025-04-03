@@ -1,0 +1,90 @@
+name: 🚀 Release Builder
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.0.0)'
+        required: true
+      prerelease:
+        description: 'Is this a prerelease?'
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    name: 🔨 Build & Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v3
+
+      - name: 🔧 Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+          check-latest: true
+
+      - name: 🧪 Run tests
+        run: make test
+
+      - name: 🏗️ Build for all platforms
+        run: |
+          # Create directories for builds
+          mkdir -p build/release
+          
+          # Build for Linux (amd64)
+          GOOS=linux GOARCH=amd64 go build -o build/release/gauth-extractor-linux-amd64 ./cmd/extractor
+          
+          # Build for macOS (amd64)
+          GOOS=darwin GOARCH=amd64 go build -o build/release/gauth-extractor-darwin-amd64 ./cmd/extractor
+          
+          # Build for macOS (arm64)
+          GOOS=darwin GOARCH=arm64 go build -o build/release/gauth-extractor-darwin-arm64 ./cmd/extractor
+          
+          # Build for Windows (amd64)
+          GOOS=windows GOARCH=amd64 go build -o build/release/gauth-extractor-windows-amd64.exe ./cmd/extractor
+
+      - name: 🐳 Build Docker image
+        run: make docker
+
+      - name: 🔐 Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📋 Get version without 'v' prefix
+        id: version
+        run: echo "VERSION=$(echo ${{ github.event.inputs.version }} | sed 's/^v//')" >> $GITHUB_OUTPUT
+
+      - name: 📦 Tag and push Docker image to GitHub Container Registry
+        run: |
+          # Create lowercase repository name (required for ghcr.io)
+          REPO_NAME_LOWERCASE="$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')"
+          
+          # Tag with the version
+          docker tag google-auth-extractor:latest ghcr.io/${REPO_NAME_LOWERCASE}:${{ steps.version.outputs.VERSION }}
+          docker tag google-auth-extractor:latest ghcr.io/${REPO_NAME_LOWERCASE}:latest
+          
+          # Push to GitHub Container Registry
+          docker push ghcr.io/${REPO_NAME_LOWERCASE}:${{ steps.version.outputs.VERSION }}
+          docker push ghcr.io/${REPO_NAME_LOWERCASE}:latest
+
+      - name: 🚢 Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ github.event.inputs.version }}
+          name: 🔐 Google Auth Extractor ${{ github.event.inputs.version }}
+          draft: false
+          prerelease: ${{ github.event.inputs.prerelease }}
+          files: |
+            build/release/gauth-extractor-linux-amd64
+            build/release/gauth-extractor-darwin-amd64
+            build/release/gauth-extractor-darwin-arm64
+            build/release/gauth-extractor-windows-amd64.exe
+        env:
+          GITHUB_REPOSITORY: zaphkiel-ivanovna/googleauthextractor
