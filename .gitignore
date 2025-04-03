@@ -27,3 +27,4 @@ go.work.sum
 .env
 accounts.json
 *.jpeg
+.DS_Store
