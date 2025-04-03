@@ -11,6 +11,11 @@ on:
         type: boolean
         default: false
 
+# Set permissions needed for GitHub Packages
+permissions:
+  contents: write # For creating releases
+  packages: write # For publishing packages to GHCR
+
 jobs:
   build:
     name: 🔨 Build & Release
@@ -22,7 +27,7 @@ jobs:
       - name: 🔧 Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.24'
+          go-version: '1.20'
           check-latest: true
 
       - name: 🧪 Run tests
@@ -59,15 +64,25 @@ jobs:
         id: version
         run: echo "VERSION=$(echo ${{ github.event.inputs.version }} | sed 's/^v//')" >> $GITHUB_OUTPUT
 
+      - name: 📦 Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
       - name: 📦 Tag and push Docker image to GitHub Container Registry
         run: |
           # Create lowercase repository name (required for ghcr.io)
           REPO_NAME_LOWERCASE="$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')"
-
-          # Tag with the version
-          docker tag google-auth-extractor:latest ghcr.io/${REPO_NAME_LOWERCASE}:${{ steps.version.outputs.VERSION }}
-          docker tag google-auth-extractor:latest ghcr.io/${REPO_NAME_LOWERCASE}:latest
-
+          
+          # Add Docker metadata for better discoverability on GHCR
+          docker build -t ghcr.io/${REPO_NAME_LOWERCASE}:${{ steps.version.outputs.VERSION }} \
+            --label "org.opencontainers.image.title=Google Auth Extractor" \
+            --label "org.opencontainers.image.description=A tool to extract TOTP/HOTP secrets from Google Authenticator" \
+            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            --label "org.opencontainers.image.version=${{ steps.version.outputs.VERSION }}" \
+            .
+          
+          # Tag also as latest
+          docker tag ghcr.io/${REPO_NAME_LOWERCASE}:${{ steps.version.outputs.VERSION }} ghcr.io/${REPO_NAME_LOWERCASE}:latest
+          
           # Push to GitHub Container Registry
           docker push ghcr.io/${REPO_NAME_LOWERCASE}:${{ steps.version.outputs.VERSION }}
           docker push ghcr.io/${REPO_NAME_LOWERCASE}:latest
