@@ -45,5 +45,5 @@ func PrintJSON(accounts []decoder.Account) {
 	}
 
 	fmt.Println(string(data))
-	color.Yellow("What you want to use as secret key in other password managers is 'totpSecret', not 'secret'!")
+	color.Yellow("Note: When adding accounts to other authenticator apps, use the 'totpSecret' value as the secret key, not the 'secret' value.")
 }

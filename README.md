@@ -1,4 +1,4 @@
-# 🔐 Google Authenticator Extractor
+# 🔐 Google Authenticator Secret Extractor
 
 Extract TOTP/HOTP secrets from Google Authenticator export QR codes with ease.
 
@@ -12,6 +12,9 @@ Extract TOTP/HOTP secrets from Google Authenticator export QR codes with ease.
 - **📤 Flexible Output**:
   - 📄 Export to JSON for backup or custom processing
   - 🔄 Generate individual QR codes for each account to scan with other apps
+  - 🖥️ Pretty print account details directly in your terminal
+  - 📟 Display QR codes as ASCII art in the terminal
+  - 🔑 View full secrets securely when needed
 - **🔄 Easy Migration**: Move your accounts to any authenticator app (Authy, Bitwarden, etc.)
 - **🐳 Containerized**: Docker support for consistent execution
 
@@ -24,7 +27,6 @@ Download the latest release from [GitHub Releases](https://github.com/Zaphkiel-I
 ### 🛠️ From Source
 
 Requirements:
-
 - Go 1.16 or higher
 
 ```bash
@@ -54,37 +56,112 @@ docker run -it --rm -v "$(pwd):/home/appuser/data" gauth-extractor
 
 ## 🧰 Usage
 
-### 🖥️ Basic Command Line
+The CLI has been restructured with a more intuitive command system. There are three main commands:
+
+- `view` - Display accounts in the terminal
+- `json` - Export accounts to JSON format
+- `qr` - Generate QR codes for each account
+
+### Input Methods
+
+All commands support these input methods (specify one):
 
 ```bash
-# Extract using interactive mode
-gauth-extractor -i
+# Interactive mode (will prompt for URI)
+gauth-extractor <command> -i
 
-# Extract from URI to JSON
-gauth-extractor -u "otpauth-migration://offline?data=..." -o json -f accounts.json
+# From URI string
+gauth-extractor <command> -u "otpauth-migration://offline?data=..."
 
-# Extract from URI to individual QR codes
-gauth-extractor -u "otpauth-migration://offline?data=..." -o qrcode -d ./qrcodes
-
-# Extract directly from a QR code image
-gauth-extractor -p "/path/to/qrcode-screenshot.png" -o json
+# From QR code image
+gauth-extractor <command> -q "/path/to/qrcode-screenshot.png"
 ```
 
-### 📋 Command Line Options
+### 📺 View in Terminal
+
+```bash
+# View accounts in terminal with pretty formatting (default)
+gauth-extractor view -u "otpauth-migration://offline?data=..."
+
+# Simple table view (disable pretty print)
+gauth-extractor view -u "otpauth-migration://offline?data=..." --pretty=false
+
+# Show QR codes in terminal too
+gauth-extractor view -u "otpauth-migration://offline?data=..." -r
+
+# Display full secrets (USE WITH CAUTION)
+gauth-extractor view -u "otpauth-migration://offline?data=..." -s
+
+# Combine options
+gauth-extractor view -u "otpauth-migration://offline?data=..." -r -s
+```
+
+### 📄 Export to JSON
+
+```bash
+# Save to JSON file (default: accounts.json)
+gauth-extractor json -u "otpauth-migration://offline?data=..."
+
+# Specify custom filename
+gauth-extractor json -u "otpauth-migration://offline?data=..." -f "my-accounts.json"
+
+# Print JSON to terminal instead of saving
+gauth-extractor json -u "otpauth-migration://offline?data=..." -s=false
+```
+
+### 🔄 Generate QR Codes
+
+```bash
+# Save QR codes to directory (default: ./qrcodes)
+gauth-extractor qr -u "otpauth-migration://offline?data=..."
+
+# Specify custom directory
+gauth-extractor qr -u "otpauth-migration://offline?data=..." -d "my-qrcodes"
+
+# Display QR codes in terminal instead of saving files
+gauth-extractor qr -u "otpauth-migration://offline?data=..." -s=false
+```
+
+### 📋 Command Line Reference
 
 ```
 Usage:
-  gauth-extractor [flags]
+  gauth-extractor [command]
 
-Flags:
-  -d, --dir string         Directory for QR codes (default "qrcodes")
-  -f, --file string        Output file for JSON (default "accounts.json")
-  -h, --help               Help for gauth-extractor
-  -i, --interactive        Interactive mode (prompt for URI)
-  -p, --image string       Path to image containing Google Authenticator QR code
-  -o, --output string      Output type (json or qrcode) (default "json")
-  -u, --uri string         Google Authenticator export URI
+Available Commands:
+  json        Export accounts to JSON format
+  qr          Generate QR codes for each account
+  view        View the extracted accounts in the terminal
+  help        Help about any command
+
+Global Flags (for all commands):
+  -i, --interactive       Interactive mode (prompt for input)
+  -q, --qrimage string    Path to image containing Google Authenticator QR code
+  -u, --uri string        Google Authenticator export URI
+
+Flags for 'view' command:
+  -p, --pretty            Enable pretty formatted output (default: true)
+  -r, --show-qr           Display QR codes in the terminal
+  -s, --show-secrets      Show full secrets (USE WITH CAUTION)
+
+Flags for 'json' command:
+  -f, --file string       Output file path for JSON (default: "accounts.json")
+  -s, --save              Save to file (if false, prints to terminal) (default: true)
+
+Flags for 'qr' command:
+  -d, --dir string        Directory for saving QR code images (default: "qrcodes")
+  -s, --save              Save to files (if false, displays in terminal) (default: true)
 ```
+
+### Legacy Mode
+
+For backward compatibility, you can still run the tool without a command:
+
+```bash
+gauth-extractor -u "otpauth-migration://offline?data=..."
+```
+
+This will run in interactive mode, prompting you to choose the output format.
 
 ## 📱 How to Export from Google Authenticator
 
@@ -104,13 +181,32 @@ Flags:
 
    - Take a screenshot of the QR code
    - Save the image file
-   - Provide the image path to the tool using `-p` flag
+   - Provide the image path to the tool using `-q` flag
+
+## 🔑 Understanding Secret Formats
+
+This tool extracts and presents secrets in two formats:
+
+- **BASE32 (`totpSecret`)**: This is the format used by most authenticator apps and password managers. It typically appears as uppercase letters and numbers (A-Z, 2-7).
+  
+- **BASE64 (`secret`)**: This is the internal format used by Google Authenticator. It's usually shorter but less compatible with other apps.
+
+**Which one should you use?**
+
+- When manually adding accounts to other authenticator apps: 
+  - **Always use the `totpSecret` (BASE32) value**
+  - This is the standard format expected by most apps
+
+- When using QR codes generated by this tool:
+  - The QR code already contains the correct format
+  - Simply scan the QR code with your new authenticator app
 
 ## 🔒 Security Considerations
 
 - **❌ Never** upload your Google Authenticator QR codes to online QR scanners
 - **⚠️ Avoid** sharing the URI through insecure channels
 - **🗑️ Delete** any screenshots or images containing QR codes after migration
+- **🧹 Clear** your terminal history after viewing full secrets (`history -c` on most systems)
 - **🔄 Consider** resetting your 2FA on critical accounts after migration
 - **🔐 Secure** any JSON exports as they contain sensitive authentication secrets
 
@@ -131,27 +227,60 @@ The tool extracts the following data for each account:
 }
 ```
 
-> **Note**: When migrating to other apps, use the `totpSecret` value, not the `secret` value.
-
 ## 🔄 Migration Guide
 
 ### To Authy
-
-1. Export to JSON or QR codes with `gauth-extractor`
-2. For JSON: Manually add each account using the `totpSecret` value
-3. For QR codes: Scan each generated QR code with Authy
+1. Extract your accounts:
+   ```bash
+   gauth-extractor view -u "otpauth-migration://offline?data=..." -s
+   ```
+   
+2. In Authy:
+   - Select "Add Account"
+   - Choose "Enter code manually"
+   - Enter account name and the BASE32 secret (totpSecret)
+   - Select "6-digit" tokens (for most accounts)
 
 ### To Bitwarden
+1. Extract your accounts:
+   ```bash
+   gauth-extractor json -u "otpauth-migration://offline?data=..." -s=false
+   ```
 
-1. Export to JSON or QR codes
-2. In Bitwarden, create a new login item or TOTP entry
-3. For JSON: Enter the `totpSecret` as the Authenticator Key
-4. For QR codes: Scan each QR code with Bitwarden
+2. In Bitwarden:
+   - Create or edit a login entry
+   - Scroll to the "Authenticator Key (TOTP)" section
+   - Enter the BASE32 secret (totpSecret) value
+   - Save the entry
+
+### To 1Password
+1. Generate individual QR codes:
+   ```bash
+   gauth-extractor qr -u "otpauth-migration://offline?data=..."
+   ```
+
+2. In 1Password:
+   - Create or edit an item
+   - Click "Add One-Time Password" 
+   - Select "Scan QR Code"
+   - Capture each QR code generated by the tool
+
+### To KeePass (with KeePassOTP plugin)
+1. Extract your accounts:
+   ```bash
+   gauth-extractor view -u "otpauth-migration://offline?data=..." -s
+   ```
+
+2. In KeePass (with KeePassOTP plugin):
+   - Edit an entry
+   - Go to the "Additional" tab
+   - Click "Set Up TOTP"
+   - Enter the BASE32 secret (totpSecret)
+   - Set other parameters as needed (6 digits, 30 seconds period)
 
 ## 🧪 Development
 
 ### Protocol Buffer
-
 The tool uses Protocol Buffers to decode Google Authenticator's data format:
 
 ```protobuf
